@@ -712,26 +712,24 @@ class SunOSVirtual(Virtual):
             cmd = subprocess.Popen("/usr/bin/zonename", shell=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
-            if out != "global":
+            if out.rstrip() != "global":
                 self.facts['container'] = 'zone'
-            # Check if it's a branded zone (i.e. Solaris 8/9 zone)
-            if os.path.isdir('/.SUNWnative'):
-                self.facts['container'] = 'zone' 
-            # If it's a zone check if we can detect if our global zone is itself virtualized.
-            # If the virtualization "guest tools" (e.g. vmware tools) are not installed
-            # this method with fail to detect if the global zone is virtualized since
-            # we don't have access to 'prtdiag' output from within zones.
-            if self.facts['container'] == 'zone':
-                cmd = subprocess.Popen("/usr/sbin/modinfo", shell=True,
-                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = cmd.communicate()
-                for line in out.split('\n'):
-                    if 'VMware' in line:
-                        self.facts['virtualization_type'] = 'vmware'
-                        self.facts['virtualization_role'] = 'guest'
-                    if 'VirtualBox' in line:
-                        self.facts['virtualization_type'] = 'virtualbox'
-                        self.facts['virtualization_role'] = 'guest'
+        # Check if it's a branded zone (i.e. Solaris 8/9 zone)
+        if os.path.isdir('/.SUNWnative'):
+            self.facts['container'] = 'zone'
+        # If it's a zone check if we can detect if our global zone is itself virtualized.
+        # Relies on the "guest tools" (e.g. vmware tools) to be installed
+        if 'container' in self.facts and self.facts['container'] == 'zone':
+            cmd = subprocess.Popen("/usr/sbin/modinfo", shell=True,
+                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = cmd.communicate()
+            for line in out.split('\n'):
+                if 'VMware' in line:
+                    self.facts['virtualization_type'] = 'vmware'
+                    self.facts['virtualization_role'] = 'guest'
+                if 'VirtualBox' in line:
+                    self.facts['virtualization_type'] = 'virtualbox'
+                    self.facts['virtualization_role'] = 'guest'
 
 def get_file_content(path):
     data = None
