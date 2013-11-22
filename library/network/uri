@@ -124,6 +124,11 @@ options:
 # informational: requirements for nodes
 requirements: [ urlparse, httplib2 ]
 author: Romeo Theriault
+notes:
+   - If the Content-Type header returned by the web service starts with 'application/json'
+     and the returned content is valid JSON data then the JSON data will be parsed and
+     stored into the register variable under the 'json' key for easy retrieval. 
+     e.g. {{register_var.json.some_subkey}}
 '''
 
 EXAMPLES = '''
